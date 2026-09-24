@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedback & Change Request Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Feedback & Change Request Portal</h1>
+      <p>Submit a request or review existing requests.</p>
+    </div>
+    <div class="connection">
+      <span id="connectionDot"></span>
+      <span id="connectionText">Connecting…</span>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="submitTab">New Request</button>
+    <button class="tab" data-tab="requestsTab">Requests</button>
+  </nav>
+
+  <main>
+    <section id="submitTab" class="tab-panel active">
+      <div class="card">
+        <div class="section-heading">
+          <div>
+            <h2>Submit Feedback / Change Request</h2>
+            <p>Fields marked <b>*</b> are required.</p>
+          </div>
+          <span class="status-pill">New</span>
+        </div>
+
+        <form id="requestForm">
+          <div class="grid two">
+            <label>
+              <span>Module Affected *</span>
+              <input id="moduleAffected" required maxlength="150" placeholder="e.g. Login, Payments, Reports">
+            </label>
+            <label>
+              <span>Request Title *</span>
+              <input id="requestTitle" required maxlength="250" placeholder="Short title of the request">
+            </label>
+          </div>
+
+          <label>
+            <span>Description *</span>
+            <div class="rich-wrap">
+              <div class="toolbar" data-editor="description">
+                <button type="button" data-cmd="bold">B</button>
+                <button type="button" data-cmd="italic"><i>I</i></button>
+                <button type="button" data-cmd="insertUnorderedList">• List</button>
+                <button type="button" data-cmd="removeFormat">Clear</button>
+              </div>
+              <div id="description" class="editor" contenteditable="true" data-placeholder="Describe the request or issue…"></div>
+            </div>
+          </label>
+
+          <label>
+            <span>Current Behavior *</span>
+            <div class="rich-wrap">
+              <div class="toolbar" data-editor="currentBehavior">
+                <button type="button" data-cmd="bold">B</button>
+                <button type="button" data-cmd="italic"><i>I</i></button>
+                <button type="button" data-cmd="insertUnorderedList">• List</button>
+                <button type="button" data-cmd="removeFormat">Clear</button>
+              </div>
+              <div id="currentBehavior" class="editor" contenteditable="true" data-placeholder="What happens today?"></div>
+            </div>
+          </label>
+
+          <label>
+            <span>Requested Change *</span>
+            <div class="rich-wrap">
+              <div class="toolbar" data-editor="requestedChange">
+                <button type="button" data-cmd="bold">B</button>
+                <button type="button" data-cmd="italic"><i>I</i></button>
+                <button type="button" data-cmd="insertUnorderedList">• List</button>
+                <button type="button" data-cmd="removeFormat">Clear</button>
+              </div>
+              <div id="requestedChange" class="editor" contenteditable="true" data-placeholder="What should change?"></div>
+            </div>
+          </label>
+
+          <label>
+            <span>Additional Details</span>
+            <div class="rich-wrap">
+              <div class="toolbar" data-editor="additionalDetails">
+                <button type="button" data-cmd="bold">B</button>
+                <button type="button" data-cmd="italic"><i>I</i></button>
+                <button type="button" data-cmd="insertUnorderedList">• List</button>
+                <button type="button" data-cmd="removeFormat">Clear</button>
+              </div>
+              <div id="additionalDetails" class="editor" contenteditable="true" data-placeholder="Anything else that would help?"></div>
+            </div>
+          </label>
+
+          <div class="attachment-box">
+            <div class="attachment-head">
+              <div>
+                <span class="label">Attachments</span>
+                <small>Images only. You can select files or paste an image directly.</small>
+              </div>
+              <label class="file-button">
+                Add Images
+                <input id="attachmentInput" type="file" accept="image/*" multiple hidden>
+              </label>
+            </div>
+            <div id="dropZone" class="drop-zone" tabindex="0">
+              <span>Drop images here or <b>paste</b> an image from your clipboard</span>
+            </div>
+            <div id="attachmentPreview" class="attachment-preview"></div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="secondary" id="clearButton">Clear</button>
+            <button type="submit" class="primary" id="submitButton">Submit Request</button>
+          </div>
+          <div id="formMessage" class="message" role="status"></div>
+        </form>
+      </div>
+    </section>
+
+    <section id="requestsTab" class="tab-panel">
+      <div class="card">
+        <div class="list-header">
+          <div>
+            <h2>Requests</h2>
+            <p>Select a request to view or edit its details.</p>
+          </div>
+          <button class="secondary" id="refreshButton">Refresh</button>
+        </div>
+
+        <div class="filters">
+          <input id="searchInput" placeholder="Search ID, module, title…">
+          <select id="statusFilter">
+            <option value="">All Statuses</option>
+            <option>New</option>
+            <option>In Progress</option>
+            <option>Completed</option>
+            <option>Rejected</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Request ID</th>
+                <th>Module</th>
+                <th>Request Title</th>
+                <th>Status</th>
+                <th>Date Requested</th>
+              </tr>
+            </thead>
+            <tbody id="requestRows">
+              <tr><td colspan="5" class="empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <div id="detailModal" class="modal hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <div class="eyebrow">REQUEST <span id="detailId"></span></div>
+            <h2 id="detailTitle">Request Details</h2>
+          </div>
+          <button class="icon-button" id="closeModal" aria-label="Close">×</button>
+        </div>
+
+        <form id="editForm">
+          <input id="editRow" type="hidden">
+          <div class="grid two">
+            <label><span>Module Affected</span><input id="editModule"></label>
+            <label><span>Request Title</span><input id="editTitle"></label>
+          </div>
+          <label><span>Description</span><div id="editDescription" class="editor editor-large" contenteditable="true"></div></label>
+          <label><span>Current Behavior</span><div id="editCurrentBehavior" class="editor editor-large" contenteditable="true"></div></label>
+          <label><span>Requested Change</span><div id="editRequestedChange" class="editor editor-large" contenteditable="true"></div></label>
+          <label><span>Additional Details</span><div id="editAdditionalDetails" class="editor editor-large" contenteditable="true"></div></label>
+
+          <label>
+            <span>Status</span>
+            <select id="editStatus">
+              <option>New</option>
+              <option>In Progress</option>
+              <option>Completed</option>
+              <option>Rejected</option>
+            </select>
+          </label>
+
+          <div>
+            <span class="label">Attachments</span>
+            <div id="existingAttachments" class="existing-attachments"></div>
+          </div>
+
+          <div class="attachment-box compact">
+            <div class="attachment-head">
+              <small>Add more images. Existing attachments will be retained.</small>
+              <label class="file-button">
+                Add Images
+                <input id="editAttachmentInput" type="file" accept="image/*" multiple hidden>
+              </label>
+            </div>
+            <div id="editAttachmentPreview" class="attachment-preview"></div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="secondary" id="cancelEdit">Cancel</button>
+            <button type="submit" class="primary" id="saveButton">Save Changes</button>
+          </div>
+          <div id="editMessage" class="message" role="status"></div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
