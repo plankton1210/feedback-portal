@@ -2,7 +2,7 @@
   Set this after deploying Code.gs as a Google Apps Script Web App.
   Example: https://script.google.com/macros/s/XXXXXXXX/exec
 */
-const API_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+const API_URL = "https://script.google.com/macros/s/AKfycbzGPM-0wVrVpuo2EQk1ykkncV5BpvW2AVRawnl0yi-dgDa_s0XLI7VniCwsJw0x2DVHaQ/exec";
 
 let requests = [];
 let newAttachments = [];
