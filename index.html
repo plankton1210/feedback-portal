@@ -4,7 +4,92 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Feedback & Change Request Portal</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #fff;
+      --text: #172033;
+      --muted: #667085;
+      --border: #dfe4ec;
+      --primary: #315efb;
+      --primary-dark: #2449c7;
+      --success: #16834b;
+      --danger: #c62828;
+      --shadow: 0 12px 30px rgba(20, 30, 55, .08);
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font-family:Inter,Segoe UI,Arial,sans-serif; }
+    .topbar { background:#101828; color:#fff; padding:24px clamp(18px,4vw,56px); display:flex; justify-content:space-between; gap:20px; align-items:center; }
+    .topbar h1 { margin:0 0 6px; font-size:clamp(22px,3vw,32px); }
+    .topbar p { margin:0; color:#cbd5e1; }
+    .connection { display:flex; gap:8px; align-items:center; font-size:13px; color:#d0d5dd; }
+    #connectionDot { width:9px; height:9px; border-radius:50%; background:#f59e0b; }
+    .tabs { display:flex; gap:4px; padding:0 clamp(18px,4vw,56px); background:#fff; border-bottom:1px solid var(--border); }
+    .tab { border:0; background:transparent; padding:15px 18px; cursor:pointer; color:var(--muted); font-weight:700; border-bottom:3px solid transparent; }
+    .tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+    main { max-width:1200px; margin:28px auto; padding:0 18px 50px; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:26px; box-shadow:var(--shadow); }
+    .section-heading,.list-header,.attachment-head,.modal-header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+    h2 { margin:0 0 6px; font-size:22px; }
+    .section-heading p,.list-header p { margin:0; color:var(--muted); font-size:14px; }
+    .status-pill { background:#eef4ff; color:var(--primary); border-radius:999px; padding:7px 12px; font-size:12px; font-weight:800; }
+    form { display:flex; flex-direction:column; gap:18px; margin-top:24px; }
+    .grid.two { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    label { display:flex; flex-direction:column; gap:7px; font-weight:700; font-size:14px; }
+    label > span,.label { font-weight:800; }
+    input,select { width:100%; border:1px solid var(--border); border-radius:10px; padding:12px 13px; background:#fff; color:var(--text); font:inherit; outline:none; }
+    input:focus,select:focus,.editor:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(49,94,251,.1); }
+    .rich-wrap { border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+    .toolbar { display:flex; gap:5px; padding:7px; border-bottom:1px solid var(--border); background:#f8fafc; }
+    .toolbar button { border:1px solid transparent; background:transparent; border-radius:6px; padding:5px 9px; cursor:pointer; font-weight:700; }
+    .toolbar button:hover { background:#e9eefb; }
+    .editor { min-height:110px; padding:12px 13px; outline:none; font-weight:400; line-height:1.5; }
+    .editor-large { border:1px solid var(--border); border-radius:10px; min-height:120px; }
+    .editor:empty::before { content:attr(data-placeholder); color:#98a2b3; pointer-events:none; }
+    .attachment-box { border:1px solid var(--border); border-radius:12px; padding:14px; }
+    .attachment-box.compact { margin-top:0; }
+    .attachment-head small { display:block; color:var(--muted); margin-top:3px; font-weight:400; }
+    .file-button { display:inline-flex; flex-direction:row; align-items:center; justify-content:center; background:#eef4ff; color:var(--primary); padding:9px 12px; border-radius:9px; cursor:pointer; font-size:13px; white-space:nowrap; }
+    .drop-zone { margin-top:12px; border:1px dashed #aab5c7; border-radius:10px; min-height:75px; display:grid; place-items:center; color:var(--muted); text-align:center; padding:14px; background:#fafbfe; }
+    .drop-zone:focus,.drop-zone.dragover { outline:2px solid rgba(49,94,251,.25); border-color:var(--primary); }
+    .attachment-preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+    .preview-item { width:120px; position:relative; border:1px solid var(--border); border-radius:99px; overflow:hidden; background:#fff; }
+    .preview-item img { width:120px; height:90px; object-fit:cover; display:block; }
+    .preview-item button { width:100%; border:0; background:#fff; padding:5px; color:var(--danger); cursor:pointer; font-size:12px; }
+    .form-actions { display:flex; justify-content:flex-end; gap:10px; }
+    button.primary,button.secondary { border:0; border-radius:10px; padding:11px 16px; font-weight:800; cursor:pointer; }
+    button.primary { background:var(--primary); color:#fff; }
+    button.primary:hover { background:var(--primary-dark); }
+    button.secondary { background:#eef1f5; color:#344054; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .message { min-height:20px; font-size:14px; }
+    .message.success { color:var(--success); }
+    .message.error { color:var(--danger); }
+    .filters { display:grid; grid-template-columns:1fr 180px; gap:10px; margin:20px 0 14px; }
+    .table-wrap { overflow:auto; border:1px solid var(--border); border-radius:10px; }
+    table { width:100%; border-collapse:collapse; min-width:700px; }
+    th,td { padding:13px 14px; border-bottom:1px solid var(--border); text-align:left; font-size:14px; }
+    th { background:#f8fafc; color:#475467; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    tbody tr { cursor:pointer; }
+    tbody tr:hover { background:#f8faff; }
+    .empty { text-align:center; color:var(--muted); padding:30px; cursor:default; }
+    .modal { position:fixed; inset:0; background:rgba(16,24,40,.55); display:grid; place-items:center; padding:20px; z-index:20; }
+    .modal.hidden { display:none; }
+    .modal-card { background:#fff; width:min(900px,100%); max-height:92vh; overflow:auto; border-radius:16px; padding:24px; box-shadow:0 25px 70px rgba(0,0,0,.25); }
+    .modal-header { align-items:center; border-bottom:1px solid var(--border); padding-bottom:15px; }
+    .icon-button { border:0; background:#f2f4f7; border-radius:50%; width:36px; height:36px; font-size:24px; cursor:pointer; }
+    .eyebrow { font-size:11px; color:var(--muted); font-weight:900; letter-spacing:.08em; margin-bottom:4px; }
+    .existing-attachments { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+    .existing-attachments a { display:block; }
+    .existing-attachments img { width:130px; height:95px; object-fit:cover; border-radius:8px; border:1px solid var(--border); }
+    @media (max-width:700px) {
+      .topbar { align-items:flex-start; flex-direction:column; }
+      .grid.two,.filters { grid-template-columns:1fr; }
+      .card { padding:18px; }
+    }
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -221,6 +306,350 @@
     </div>
   </main>
 
-  <script src="zapp.js"></script>
+  <script>
+    // Paste your Google Apps Script Web App URL below
+    const API_URL = "https://script.google.com/macros/s/AKfycbzGPM-0wVrVpuo2EQk1ykkncV5BpvW2AVRawnl0yi-dgDa_s0XLI7VniCwsJw0x2DVHaQ/exec";
+
+    let requests = [];
+    let newAttachments = [];
+    let editAttachments = [];
+    let currentEditRequest = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      bindTabs();
+      bindEditors();
+      bindAttachmentPicker("attachmentInput", "attachmentPreview", false);
+      bindAttachmentPicker("editAttachmentInput", "editAttachmentPreview", true);
+      bindDropZone();
+      $("requestForm").addEventListener("submit", submitRequest);
+      $("clearButton").addEventListener("click", clearNewForm);
+      $("refreshButton").addEventListener("click", loadRequests);
+      $("searchInput").addEventListener("input", renderRequests);
+      $("statusFilter").addEventListener("change", renderRequests);
+      $("closeModal").addEventListener("click", closeModal);
+      $("cancelEdit").addEventListener("click", closeModal);
+      $("editForm").addEventListener("submit", saveEdit);
+      loadRequests();
+    });
+
+    function bindTabs() {
+      document.querySelectorAll(".tab").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+          document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+          btn.classList.add("active");
+          $(btn.dataset.tab).classList.add("active");
+          if (btn.dataset.tab === "requestsTab") loadRequests();
+        });
+      });
+    }
+
+    function bindEditors() {
+      document.querySelectorAll(".toolbar button").forEach(btn => {
+        btn.addEventListener("mousedown", e => e.preventDefault());
+        btn.addEventListener("click", () => {
+          const editor = $(btn.closest(".toolbar").dataset.editor);
+          editor.focus();
+          document.execCommand(btn.dataset.cmd, false, null);
+        });
+      });
+    }
+
+    function bindAttachmentPicker(inputId, previewId, isEdit) {
+      $(inputId).addEventListener("change", async e => {
+        await addImageFiles(Array.from(e.target.files), isEdit);
+        e.target.value = "";
+      });
+    }
+
+    function bindDropZone() {
+      const zone = $("dropZone");
+      ["dragenter","dragover"].forEach(type => zone.addEventListener(type, e => {
+        e.preventDefault(); zone.classList.add("dragover");
+      }));
+      ["dragleave","drop"].forEach(type => zone.addEventListener(type, e => {
+        e.preventDefault(); zone.classList.remove("dragover");
+      }));
+      zone.addEventListener("drop", async e => {
+        await addImageFiles(Array.from(e.dataTransfer.files), false);
+      });
+      zone.addEventListener("paste", async e => {
+        const files = Array.from(e.clipboardData.files || []).filter(f => f.type.startsWith("image/"));
+        if (files.length) {
+          e.preventDefault();
+          await addImageFiles(files, false);
+        }
+      });
+    }
+
+    async function addImageFiles(files, isEdit) {
+      for (const file of files) {
+        if (!file.type.startsWith("image/")) continue;
+        try {
+          const compressed = await compressImage(file);
+          if (isEdit) editAttachments.push(compressed);
+          else newAttachments.push(compressed);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+      renderAttachmentPreview(isEdit);
+    }
+
+    function compressImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const max = 1600;
+            const scale = Math.min(1, max / Math.max(img.width, img.height));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(img.width * scale));
+            canvas.height = Math.max(1, Math.round(img.height * scale));
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+            resolve({
+              name: (file.name || "pasted-image").replace(/\.[^.]+$/, "") + ".jpg",
+              mimeType: "image/jpeg",
+              data: dataUrl.split(",")[1],
+              preview: dataUrl
+            });
+          };
+          img.onerror = reject;
+          img.src = reader.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderAttachmentPreview(isEdit) {
+      const list = isEdit ? editAttachments : newAttachments;
+      const container = $(isEdit ? "editAttachmentPreview" : "attachmentPreview");
+      container.innerHTML = "";
+      list.forEach((file, index) => {
+        const div = document.createElement("div");
+        div.className = "preview-item";
+        div.innerHTML = `<img src="${file.preview}" alt=""><button type="button">Remove</button>`;
+        div.querySelector("button").addEventListener("click", () => {
+          list.splice(index, 1);
+          renderAttachmentPreview(isEdit);
+        });
+        container.appendChild(div);
+      });
+    }
+
+    function htmlToText(html) {
+      const div = document.createElement("div");
+      div.innerHTML = html || "";
+      return div.innerText.trim();
+    }
+
+    function collectForm() {
+      return {
+        moduleAffected: $("moduleAffected").value.trim(),
+        requestTitle: $("requestTitle").value.trim(),
+        description: $("description").innerHTML.trim(),
+        currentBehavior: $("currentBehavior").innerHTML.trim(),
+        requestedChange: $("requestedChange").innerHTML.trim(),
+        additionalDetails: $("additionalDetails").innerHTML.trim(),
+        attachments: newAttachments.map(({name,mimeType,data}) => ({name,mimeType,data}))
+      };
+    }
+
+    async function submitRequest(e) {
+      e.preventDefault();
+      const data = collectForm();
+      if (!data.moduleAffected || !data.requestTitle ||
+          !htmlToText(data.description) || !htmlToText(data.currentBehavior) ||
+          !htmlToText(data.requestedChange)) {
+        showMessage("formMessage", "Please complete all required fields.", true);
+        return;
+      }
+
+      $("submitButton").disabled = true;
+      showMessage("formMessage", "Submitting…");
+      try {
+        await postJSON({ action: "create", data });
+        showMessage("formMessage", "Request submitted successfully.", false);
+        clearNewForm(false);
+        setTimeout(loadRequests, 1800);
+      } catch (err) {
+        console.error(err);
+        showMessage("formMessage", "The request could not be submitted. Check the Web App deployment.", true);
+      } finally {
+        $("submitButton").disabled = false;
+      }
+    }
+
+    function clearNewForm(show = true) {
+      $("requestForm").reset();
+      ["description","currentBehavior","requestedChange","additionalDetails"].forEach(id => $(id).innerHTML = "");
+      newAttachments = [];
+      renderAttachmentPreview(false);
+      if (show) showMessage("formMessage", "");
+    }
+
+    function showMessage(id, message, error = false) {
+      const el = $(id);
+      el.textContent = message;
+      el.className = "message" + (message ? (error ? " error" : " success") : "");
+    }
+
+    function postJSON(payload) {
+      if (!API_URL || API_URL.includes("PASTE_YOUR")) {
+        return Promise.reject(new Error("API_URL is not configured."));
+      }
+      return fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {"Content-Type": "text/plain;charset=utf-8"},
+        body: JSON.stringify(payload)
+      }).then(() => ({ok:true}));
+    }
+
+    function loadRequests() {
+      if (!API_URL || API_URL.includes("PASTE_YOUR")) {
+        $("connectionText").textContent = "Configure API URL";
+        $("connectionDot").style.background = "#ef4444";
+        $("requestRows").innerHTML = `<tr><td colspan="5" class="empty">Add your Apps Script Web App URL to index.html.</td></tr>`;
+        return;
+      }
+      $("connectionText").textContent = "Loading…";
+      jsonp(API_URL + "?action=list");
+    }
+
+    function jsonp(url) {
+      const callback = "feedbackCallback_" + Date.now();
+      window[callback] = data => {
+        delete window[callback];
+        script.remove();
+        requests = Array.isArray(data.requests) ? data.requests : [];
+        $("connectionText").textContent = "Connected";
+        $("connectionDot").style.background = "#16a34a";
+        renderRequests();
+      };
+      const script = document.createElement("script");
+      script.src = url + "&callback=" + callback;
+      script.onerror = () => {
+        delete window[callback];
+        script.remove();
+        $("connectionText").textContent = "Connection error";
+        $("connectionDot").style.background = "#ef4444";
+        $("requestRows").innerHTML = `<tr><td colspan="5" class="empty">Unable to load requests. Check Apps Script deployment and access.</td></tr>`;
+      };
+      document.body.appendChild(script);
+    }
+
+    function renderRequests() {
+      const q = $("searchInput").value.toLowerCase().trim();
+      const status = $("statusFilter").value;
+      const filtered = requests.filter(r => {
+        const hay = `${r.requestId} ${r.moduleAffected} ${r.requestTitle}`.toLowerCase();
+        return (!q || hay.includes(q)) && (!status || r.status === status);
+      });
+      const tbody = $("requestRows");
+      tbody.innerHTML = "";
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty">No requests found.</td></tr>`;
+        return;
+      }
+      filtered.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><b>${escapeHtml(r.requestId)}</b></td>
+          <td>${escapeHtml(r.moduleAffected)}</td>
+          <td>${escapeHtml(r.requestTitle)}</td>
+          <td>${escapeHtml(r.status)}</td>
+          <td>${escapeHtml(r.dateRequested)}</td>`;
+        tr.addEventListener("click", () => openRequest(r));
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openRequest(r) {
+      currentEditRequest = r;
+      $("detailId").textContent = r.requestId;
+      $("detailTitle").textContent = r.requestTitle;
+      $("editRow").value = r.row;
+      $("editModule").value = r.moduleAffected || "";
+      $("editTitle").value = r.requestTitle || "";
+      $("editDescription").innerHTML = r.description || "";
+      $("editCurrentBehavior").innerHTML = r.currentBehavior || "";
+      $("editRequestedChange").innerHTML = r.requestedChange || "";
+      $("editAdditionalDetails").innerHTML = r.additionalDetails || "";
+      $("editStatus").value = r.status || "New";
+      editAttachments = [];
+      renderAttachmentPreview(true);
+      renderExistingAttachments(r.attachments || []);
+      showMessage("editMessage", "");
+      $("detailModal").classList.remove("hidden");
+    }
+
+    function renderExistingAttachments(urls) {
+      const box = $("existingAttachments");
+      box.innerHTML = "";
+      if (!urls.length) {
+        box.innerHTML = `<span style="color:#667085;font-size:13px">No attachments</span>`;
+        return;
+      }
+      urls.forEach((url, i) => {
+        const a = document.createElement("a");
+        a.href = url;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.innerHTML = `<img src="${url}" alt="Attachment ${i+1}">`;
+        box.appendChild(a);
+      });
+    }
+
+    function closeModal() {
+      $("detailModal").classList.add("hidden");
+      currentEditRequest = null;
+    }
+
+    async function saveEdit(e) {
+      e.preventDefault();
+      const data = {
+        row: Number($("editRow").value),
+        moduleAffected: $("editModule").value.trim(),
+        requestTitle: $("editTitle").value.trim(),
+        description: $("editDescription").innerHTML.trim(),
+        currentBehavior: $("editCurrentBehavior").innerHTML.trim(),
+        requestedChange: $("editRequestedChange").innerHTML.trim(),
+        additionalDetails: $("editAdditionalDetails").innerHTML.trim(),
+        status: $("editStatus").value,
+        attachments: editAttachments.map(({name,mimeType,data}) => ({name,mimeType,data}))
+      };
+      if (!data.moduleAffected || !data.requestTitle) {
+        showMessage("editMessage", "Module and title are required.", true);
+        return;
+      }
+      $("saveButton").disabled = true;
+      showMessage("editMessage", "Saving…");
+      try {
+        await postJSON({action:"update", data});
+        showMessage("editMessage", "Saved. Refreshing list…");
+        setTimeout(() => {
+          closeModal();
+          loadRequests();
+        }, 900);
+      } catch (err) {
+        showMessage("editMessage", "Could not save changes.", true);
+      } finally {
+        $("saveButton").disabled = false;
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[c]));
+    }
+  </script>
 </body>
 </html>
